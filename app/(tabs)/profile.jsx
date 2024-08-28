@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList,Image } from "react-native";
+import { View, Text, StyleSheet, FlatList,Image,Button } from "react-native";
 import React from "react";
 
 export default function Profile() {
@@ -13,6 +13,7 @@ export default function Profile() {
             source={require("@/assets/images/Allura.png")}
           />
           <Text style={styles.centerText}>Upss kamu belum memiliki akun. Mulai buat akun agar transaksi di TMMIN Car Rental lebih mudah</Text>
+          {/* <Button></Button> */}
         </View>
       }
       viewabilityConfig={{

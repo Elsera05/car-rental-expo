@@ -1,0 +1,125 @@
+import { Image, StyleSheet, View, Text, Button } from "react-native";
+import Constants from "expo-constants";
+import { Col, Row } from "../../components/Grid";
+import ButtonIcon from "../../components/ButtonIcon";
+import CarList from "../../components/CarList";
+import {useState, useEffect} from 'react';
+import ParallaxFlatList from "../../components/ParallaxFlatList";
+
+export default function HomeScreen() {
+  const [cars, setCars] = useState([]);
+
+  useEffect(() => {
+    const getData = async () => {
+      const response = await fetch(
+        "https://api-car-rental.binaracademy.org/customer/car"
+      );
+      const body = await response.json();
+      setCars(body)
+    }
+    getData()
+    
+  }, [])
+
+  return (
+    <ParallaxFlatList
+      headerBackgroundColor={{ light: "#A43333", dark: "#A43333" }}
+      headerImage={
+        <View style={styles.container}>
+          <View>
+            <Text style={styles.titleText}>Hi, Nama</Text>
+            <Text style={styles.titleText}>Location</Text>
+          </View>
+          <View>
+            <Image
+              style={styles.imageProfile}
+              source={require("@/assets/images/img_photo.png")}
+            />
+          </View>
+        </View>
+      }
+    >
+      <View style={styles.banner}>
+        <View style={styles.bannerContainer}>
+          <View style={styles.bannerTextContainer}>
+            <Text style={styles.bannerText}>
+              Sewa Mobil Berkualitas di kawasanmu
+            </Text>
+            <Button color="#3D7B3F" title="Sewa Mobil" />
+          </View>
+          <View>
+            <Image source={require("@/assets/images/img_car.png")} />
+          </View>
+        </View>
+      </View>
+      <View>
+        <Row justifyContent={"space-between"}>
+          <Col>
+            <ButtonIcon name={"car-outline"} color={"#ffffff"} />
+          </Col>
+          <Col>
+            <ButtonIcon name={"cube-outline"} color={"#ffffff"} />
+          </Col>
+          <Col>
+            <ButtonIcon name={"key-outline"} color={"#ffffff"} />
+          </Col>
+          <Col>
+            <ButtonIcon name={"camera-outline"} color={"#ffffff"} />
+          </Col>
+        </Row>
+      </View>
+      <View> 
+        { cars.length > 0 && cars.map((item) => (
+        <CarList
+          key={item.id}
+          image={{uri: item.image}}
+          carName={item.name}
+          passengers={5}
+          baggage={4}
+          price={item.price}
+        />
+      ))}
+      </View>
+    </ParallaxFlatList>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    paddingTop: Constants.statusBarHeight + 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+  },
+  titleText: {
+    color: "#ffffff",
+    fontFamily: "PoppinsBold",
+  },
+  imageProfile: {
+    height: 35,
+    width: 35,
+  },
+  banner: {
+    backgroundColor: "#AF392F",
+    marginTop: -140,
+    overflow: "hidden",
+    paddingTop: 20,
+    borderRadius: 5,
+  },
+  bannerContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+  },
+  bannerTextContainer: {
+    width: "45%",
+    padding: 10,
+    paddingBottom: 25,
+  },
+  bannerText: {
+    color: "#ffffff",
+    fontFamily: "Poppins",
+    fontSize: 16,
+  },
+});

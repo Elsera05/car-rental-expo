@@ -1,36 +1,39 @@
-import { Image, StyleSheet, View, Text, Button, } from "react-native";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { Image, StyleSheet, View, Text, Button } from "react-native";
+import ParallaxFlatList from "@/components/ParallaxFlatList";
 import Constants from "expo-constants";
 import { Col, Row } from "../../components/Grid";
 import ButtonIcon from "../../components/ButtonIcon";
 import CarList from "../../components/CarList";
-import {useState, useEffect} from 'react';
-import{router} from 'expo-router';
-import listcar from "./(listcar)";
-import details from "./(listcar)/details/[id]";
+import { useState, useEffect } from "react";
+import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+
+import { useSelector,useDispatch } from "react-redux";
+import {getCar,selectCar} from '@/redux/reducers/car/carSlice'
 
 export default function HomeScreen() {
-  const [cars,setCars] = useState([]);
+const {data,isLoading,}= useSelector(selectCar)
+const dispatch = useDispatch();
 
   useEffect(() => {
-    const getData = async () => {
-      const response = await fetch(
-        "https://api-car-rental.binaracademy.org/customer/car"
-      );
-      const body = await response.json();
-      setCars(body)
-    }
-    getData()
-  }, [] )
+    const controller = new AbortController(); // UseEffect cleanup untuk menghindari memory Leak
+    const signal = controller.signal;  // UseEffect cleanup
+
+    dispatch(getCar(signal))
+ // cancel request sebelum component di close
+    return () => {
+        controller.abort();
+    };
+  }, []);
 
   return (
-    <ParallaxScrollView
+    <ParallaxFlatList
       headerBackgroundColor={{ light: "#A43333", dark: "#A43333" }}
       headerImage={
         <View style={styles.container}>
           <View>
-            <Text style={styles.titleText}>Hi, Achmad</Text>
-            <Text style={styles.titleText}>Jakarta utara</Text>
+            <Text style={styles.titleText}>Hi, Nama</Text>
+            <Text style={styles.titleText}>Location</Text>
           </View>
           <View>
             <Image
@@ -40,67 +43,70 @@ export default function HomeScreen() {
           </View>
         </View>
       }
-    >
-      {/* ini dinamakan props children */}
-      <View style={styles.banner}>
-        <View style={styles.bannerContainer}>
-          <View style={styles.bannerTextContainer}>
-            <Text style={styles.bannerText}>
-              Sewa Mobil Berkualitas di kawasanmu
-            </Text>
-            <Button color="#3D7B3F" title="Sewa Mobil" />
+      banner={
+        <>
+          <View style={styles.banner}>
+            <View style={styles.bannerContainer}>
+              <View style={styles.bannerTextContainer}>
+                <Text style={styles.bannerText}>
+                  Sewa Mobil Berkualitas di kawasanmu
+                </Text>
+                <Button color="#3D7B3F" title="Sewa Mobil" />
+              </View>
+              <View>
+                <Image source={require("@/assets/images/img_car.png")} />
+              </View>
+            </View>
           </View>
           <View>
-            <Image source={require("@/assets/images/img_car.png")} />
+            <Row justifyContent={"space-between"}>
+              <Col>
+                <ButtonIcon text={'Sewa Mobil'} name={"car-outline"} color={"#ffffff"} />
+              </Col>
+              <Col>
+                <ButtonIcon text={'Oleh-Oleh'} name={"cube-outline"} color={"#ffffff"} />
+              </Col>
+              <Col>
+                <ButtonIcon text={'Penginapan'} name={"key-outline"} color={"#ffffff"} />
+              </Col>
+              <Col>
+                <ButtonIcon text={'Wisata'} name={"camera-outline"} color={"#ffffff"} />
+              </Col>
+            </Row>
           </View>
-        </View>
-      </View>
-      <View>
-        <Row justifyContent={"space-between"}>
-          <Col>
-            <ButtonIcon name={"car-outline"} color={"#ffffff"} text={'Sewa Mobil'}/>
-          </Col>
-          <Col>
-            <ButtonIcon name={"cube-outline"} color={"#ffffff"} text={'Oleh-Oleh'}/>
-          </Col>
-          <Col>
-            <ButtonIcon name={"key-outline"} color={"#ffffff"} text={'Penginapan'}/>
-          </Col>
-          <Col>
-            <ButtonIcon name={"camera-outline"} color={"#ffffff"} text={'Wisata'}/>
-          </Col>
-        </Row>
-      </View>
-      <View>
-      {
-        cars.length >0&& cars.map((el) => (
-          <CarList
-          key = {el.id}
-          image={{uri: el.image}}
-          carName={el.name}
+        </>
+      }
+      loading={isLoading}
+      data={data}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={({ item }) => (
+        <CarList
+          style={{marginHorizontal:20}}
+          key={item.id}
+          image={{ uri: item.image }}
+          carName={item.name}
           passengers={5}
           baggage={4}
-          price={el.price}
-          onPress={() =>
-            router.navigate('(listcar)/details/' + el.id)
+          price={item.price}
+          onPress={() => 
+            router.push('(listcar)/details/'+ item.id)
           }
         />
-        ))
-      }
-
-      {/* kenapa tidak pakai && maka harus dijadikan >0&& karena jika menggunakan && ada redudansi data  */}
-      </View>
-    </ParallaxScrollView>
+      )}
+      viewabilityConfig={{
+        waitForInteraction: true,
+      }}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: Constants.statusBarHeight,
+    paddingTop: Constants.statusBarHeight + 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 22,
+    paddingHorizontal: 20,
   },
   titleText: {
     color: "#ffffff",
@@ -112,10 +118,9 @@ const styles = StyleSheet.create({
   },
   banner: {
     backgroundColor: "#AF392F",
-    marginTop: -140,
+    marginTop: -100,
     overflow: "hidden",
-    paddingTop: 20,
-    borderRadius: 10,
+    borderRadius: 5,
   },
   bannerContainer: {
     flexDirection: "row",
@@ -124,8 +129,7 @@ const styles = StyleSheet.create({
   },
   bannerTextContainer: {
     width: "45%",
-    padding: 10,
-    paddingBottom: 25,
+    padding: 15,
   },
   bannerText: {
     color: "#ffffff",
@@ -133,20 +137,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-// titleContainer: {
-//   flexDirection: "row",
-//   alignItems: "center",
-//   gap: 8,
-// },
-// stepContainer: {
-//   gap: 8,
-//   marginBottom: 8,
-// },
-// reactLogo: {
-//   height: 178,
-//   width: 290,
-//   bottom: 0,
-//   left: 0,
-//   position: "absolute",
-// },

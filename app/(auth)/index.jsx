@@ -1,77 +1,131 @@
-import { View, Text, Image, Button, TextInput, StyleSheet } from "react-native"; //setiap kali mau diimport baik itu gambar tambahan css wajib diimport disini
-import React from "react";
-import { Link,router } from "expo-router"; //router dari link
-//setiap mau buat style wajib di kasih classs
+import { View, Text, Image, TextInput, Button, StyleSheet } from "react-native";
+import { useState } from "react";
+import ModalPopup from "../../components/Modal";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Link, router } from "expo-router";
+import * as SecureStore from 'expo-secure-store';
+
+async function save(key, value){
+    await SecureStore.setItemAsync(key, value)
+}
+
 export default function Login() {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const handleChange = (name, text) => {
+    setFormData({
+      ...formData,
+      [name]: text,
+    });
+  };
+  const handleSubmit = async () => {
+    console.log("test submit", formData);
+    try {
+      const req = await fetch(
+        "https://api-car-rental.binaracademy.org/customer/auth/login",
+        {
+          method: "POST",
+          headers:{
+            'Content-Type': "application/json",
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        }
+      );
+      const body = await req.json();
+      if(!req.ok) throw new Error(body.message)
+      save("user", JSON.stringify(body))
+      setModalVisible(true);
+      setTimeout(() => {
+        setModalVisible(false);
+        router.navigate("../(tabs)");
+      }, 1000);
+    } catch (e) {
+        console.log(e)
+      console.log(e.message);
+    }
+  };
   return (
-    <View style={styles.formContainer}>
-      <Image source={require("@/assets/images/TMMIN-1.png")} />
+    <View>
+      <Image source={require("@/assets/images/logo-tmmin.png")} />
       <Text style={styles.heading}>Welcome Back!</Text>
       <View style={styles.formContainer}>
         <Text style={styles.formLabel}>Email</Text>
-        <TextInput style={styles.formInput} placeholder="mamad@gmail.com" />
+        <TextInput
+          onChangeText={(text) => handleChange("email", text)}
+          style={styles.formInput}
+          placeholder="johndee@gmail.com"
+        />
       </View>
       <View style={styles.formContainer}>
         <Text style={styles.formLabel}>Password</Text>
         <TextInput
+          onChangeText={(text) => handleChange("password", text)}
           style={styles.formInput}
-          SecureTextEntry={true} //buat jadi bintang bintang
+          secureTextEntry={true}
           placeholder="password"
         />
       </View>
       <View style={styles.formContainer}>
-        <Button 
-          onPress={()=> router.navigate('../(tabs)')}
-          color="#3D7B3F" 
-          title="Sign In" />
+        <Button
+          onPress={() => handleSubmit()}
+          color="#3D7B3F"
+          title="Sign In"
+        />
         <Text style={styles.textRegister}>
-          Don't have an account?{`        `}
-          <Link style={styles.linkRegister} href="./Register">
+          Don't have an account?{` `}
+          <Link style={styles.linkRegister} href="/register">
             Sign up for free
           </Link>
         </Text>
       </View>
+      <ModalPopup visible={modalVisible}>
+        <View style={styles.modalBackground}>
+          <Ionicons size={32} name={'checkmark-circle'} />
+          <Text>Berhasil Login!</Text>
+        </View>
+      </ModalPopup>
     </View>
   );
 }
 
-//router nya gimana
-//semisalnya mau nambahin style harus ada function const styles=StyleSheet.create
 const styles = StyleSheet.create({
   heading: {
-    fontSize: 36,
-    textAlign: "center",
+    fontSize: 40,
     fontFamily: "PoppinsBold",
+    textAlign: "center",
     marginVertical: 40,
   },
-
-  //penggunaan form countainer ini untuk sebagai marginnya
   formContainer: {
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 30,
   },
   formLabel: {
     fontFamily: "PoppinsBold",
     fontSize: 14,
   },
   formInput: {
-    borderWidth: 0.5,
+    borderWidth: 1,
     padding: 10,
-    borderRadius: 4,
-  },
-  formButton: {
-    backgroundColor: "#3D7B3F",
   },
   textRegister: {
     marginTop: 10,
     textAlign: "center",
   },
   linkRegister: {
-    fontFamily: "PoppinsBold",
     color: "#0D28A6",
     textDecorationLine: "underline",
   },
-  //   ContainerView:{
-  //     paddintTop: 40,
-  //   },
+  modalBackground: {
+    width:'90%',
+    backgroundColor: '#fff',
+    elevation: 20,
+    borderRadius: 4,
+    padding:20
+  }
 });

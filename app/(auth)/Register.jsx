@@ -1,77 +1,140 @@
-import { View, Text, Image, Button, TextInput, StyleSheet } from "react-native"; //setiap kali mau diimport baik itu gambar tambahan css wajib diimport disini
-import React from "react";
-import { Link } from "expo-router"; //router dari link
-//setiap mau buat style wajib di kasih classs
+import { View, Text, StyleSheet, Image, TextInput, Button } from 'react-native'
+import { useState } from 'react'
+import ModalPopup from '../../components/Modal'
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Link, router } from 'expo-router';
+
 export default function Register() {
+  const [modalVisible, setModalVisible] = useState(false)
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  })
+  const handleChange = (name, text) => {
+    setFormData({
+      ...formData,
+      [name]: text
+    })
+  }
+  const handleSubmit = async () => {
+    console.log('test submit')
+    try{
+      const req = await
+      fetch('https://api-car-rental.binaracademy.org/customer/auth/register', {
+        method: 'POST',
+        headers:{
+          'Content-Type': "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          role: 'Customer'
+        })
+      })
+      const body = await req.json();
+      if(!req.ok) throw new Error(body.message || body.errors[0].message || "Something Went Wrong!")
+      setModalVisible(true)
+      setTimeout(() => {
+        setModalVisible(false)
+        router.navigate('/')
+      }, 1000)
+    } catch(e) {
+      setErrorMessage(e.message)
+      setModalVisible(true)
+      setTimeout(() => {
+        setModalVisible(false)
+        setErrorMessage(null)
+      }, 3000)
+    }
+  }
+
   return (
-    <View style={styles.formContainer}>
-      <Image source={require("@/assets/images/TMMIN-1.png")} />
+    <View>
+      <Image source={require('@/assets/images/logo-tmmin.png')} />
       <Text style={styles.heading}>Sign Up</Text>
       <View style={styles.formContainer}>
-        <Text style={styles.formLabel}>Nama*</Text>
-        <TextInput style={styles.formInput} placeholder="Input Full-name" />
+        <Text style={styles.formLabel}>Name*</Text>
+        <TextInput 
+            style={styles.formInput}
+            placeholder='name' />
       </View>
       <View style={styles.formContainer}>
-        <Text style={styles.formLabel}>Email</Text>
-        <TextInput
-          style={styles.formInput}
-          SecureTextEntry={true} //buat jadi bintang bintang
-          placeholder="contoh:expro@gmail.com"
-        />
+        <Text style={styles.formLabel}>Email*</Text>
+        <TextInput 
+            style={styles.formInput}
+            onChangeText={(text) => handleChange('email', text)}
+            placeholder='johndee@gmail.com' />
       </View>
       <View style={styles.formContainer}>
         <Text style={styles.formLabel}>Create Password</Text>
-        <TextInput
-          style={styles.formInput}
-          SecureTextEntry={true} //buat jadi bintang bintang
-          placeholder="8+karakter"
-        />
+        <TextInput 
+            style={styles.formInput}
+            secureTextEntry={true}
+            onChangeText={(text) => handleChange('password', text)}
+            placeholder='password' 
+            />
       </View>
       <View style={styles.formContainer}>
-        <Button color="#3D7B3F" title="Sign Up" />
+        <Button 
+            onPress={() => handleSubmit()}
+            color='#3D7B3F'
+            title="Sign Up"/>
         <Text style={styles.textRegister}>
-          Already have an account?{`        `}
-          <Link style={styles.linkRegister} href="/">
-            Sign in here
-          </Link>
-        </Text>
+            Already have an account?{` `}
+            <Link style={styles.linkRegister} href="/">Sign in free</Link></Text>
       </View>
-    </View>
-  );
+      <ModalPopup visible={modalVisible}>
+        <View style={styles.modalBackground}>
+          { errorMessage !== null ?
+            <>
+              <Ionicons size={32} name={'close-circle'} />
+              <Text>{errorMessage}</Text>
+            </>
+            : 
+            <>
+              <Ionicons size={32} name={'checkmark-circle'} />
+              <Text>Berhasil Register!</Text>
+            </>
+          }
+        </View>
+      </ModalPopup>
+      </View>
+  )
 }
-//semisalnya mau nambahin style harus ada function const styles=StyleSheet.create
+
 const styles = StyleSheet.create({
   heading: {
-    fontSize: 36,
-    textAlign: "center",
-    fontFamily: "PoppinsBold",
-    marginVertical: 40,
+      fontSize: 40,
+      fontFamily: 'PoppinsBold',
+      textAlign: 'center',
+      marginVertical: 40
   },
-
-  //penggunaan form countainer ini untuk sebagai marginnya
   formContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+      paddingHorizontal: 20,
+      marginBottom: 30,
   },
   formLabel: {
-    fontFamily: "PoppinsBold",
-    fontSize: 14,
+      fontFamily: 'PoppinsBold',
+      fontSize: 14,
   },
   formInput: {
-    borderWidth: 0.5,
-    padding: 10,
-    borderRadius:4,
-  },
-  formButton: {
-    backgroundColor: "#3D7B3F",
-  },
+      borderWidth: 1,
+      padding: 10,
+  }, 
   textRegister: {
-    marginTop: 10,
-    textAlign: "center",
+      marginTop: 10,
+      textAlign: 'center'
   },
-  linkRegister: {
-    fontFamily: "PoppinsBold",
-    color: "#0D28A6",
-    textDecorationLine: "underline",
+  linkRegister:{
+      color: '#0D28A6',
+      textDecorationLine: 'underline'
   },
-});
+  modalBackground: {
+    width:'90%',
+    backgroundColor: '#fff',
+    elevation: 20,
+    borderRadius: 4,
+    padding:20
+  }
+})

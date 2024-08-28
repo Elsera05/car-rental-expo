@@ -1,14 +1,20 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import {store} from '../redux/store';
+import { Provider } from 'react-redux';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+ 
+function getUser(){
+  return SecureStore.getItem("user")
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -21,6 +27,9 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      if(getUser()){
+        router.navigate('/(tabs)')
+      }
     }
   }, [loaded]);
 
@@ -29,21 +38,15 @@ export default function RootLayout() {
   }
 
   return (
+    
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-       <SafeAreaView style={styles.safeArea}>
-        <StatusBar/>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Provider store={store}>
+      <Stack initialRouteName=''>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found"/>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
       </Stack>
-       </SafeAreaView>
+      </Provider>
     </ThemeProvider>
   );
 }
-//di stack 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1, // Memastikan SafeAreaView mengambil seluruh ruang layar
-  },
-});
