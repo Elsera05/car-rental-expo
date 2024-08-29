@@ -74,6 +74,9 @@ const dispatch = useDispatch();
               </Col>
             </Row>
           </View>
+          <View>
+          <Text style={styles.titleMobil}>Daftar Mobil Pilihan</Text>
+          </View>
         </>
       }
       loading={isLoading}
@@ -135,5 +138,9 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontFamily: "Poppins",
     fontSize: 16,
+  },
+  titleMobil: {
+    color: "#000000",
+    fontFamily: "PoppinsBold",
   },
 });

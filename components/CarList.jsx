@@ -27,7 +27,7 @@ export default function CarList({
         </Col>
         <Col>
           <Text style={styles.carName}>{carName}</Text>
-          <Row gap={5}>
+          <Row gap={10}>
             <Col style={styles.textIcon}>
               <Ionicons size={14} name={"people-outline"} color={"#8A8A8A"} />
               <Text style={styles.capacityText}>{passengers}</Text>
@@ -79,5 +79,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 2,
+  },
+  card: {
+    shadowColor: "rgba(0,0,0,1)",
+    // shadowOffset: {
+    //     width: 0,
+    //     height: 3,
+    // },
+    // shadowOpacity: 1,
+    // shadowRadius: 1.5,
+    elevation: 2,
+    borderColor: "rgba(0,0,0,0.2)",
+    borderWidth: 0.5,
+    borderRadius: 2,
+    padding: 20,
+    marginBottom: 20,
+    backgroundColor: "#fff",
   },
 });

@@ -33,7 +33,7 @@ export default function Register() {
         })
       })
       const body = await req.json();
-      if(!req.ok) throw new Error(body.message || body.errors[0].message || "Something Went Wrong!")
+      if(!req.ok) throw new Error(body.message || body.errors[0].message || "Something Went Wrong!");
       setModalVisible(true)
       setTimeout(() => {
         setModalVisible(false)
@@ -87,15 +87,15 @@ export default function Register() {
       <ModalPopup visible={modalVisible}>
         <View style={styles.modalBackground}>
           { errorMessage !== null ?
-            <>
+            <View style={styles.modalContent}>
               <Ionicons size={32} name={'close-circle'} />
               <Text>{errorMessage}</Text>
-            </>
+              </View>
             : 
-            <>
+            <View style={styles.modalContent}>
               <Ionicons size={32} name={'checkmark-circle'} />
               <Text>Berhasil Register!</Text>
-            </>
+              </View>
           }
         </View>
       </ModalPopup>
@@ -136,5 +136,13 @@ const styles = StyleSheet.create({
     elevation: 20,
     borderRadius: 4,
     padding:20
+  },
+  modalContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   }
+
+
+
+
 })

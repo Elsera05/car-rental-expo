@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, FlatList,Image,Button } from "react-native";
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
 import React from "react";
+import { router } from "expo-router";
 
 export default function Profile() {
   return (
@@ -13,7 +14,9 @@ export default function Profile() {
             source={require("@/assets/images/Allura.png")}
           />
           <Text style={styles.centerText}>Upss kamu belum memiliki akun. Mulai buat akun agar transaksi di TMMIN Car Rental lebih mudah</Text>
-          {/* <Button></Button> */}
+          <TouchableOpacity style={styles.button} onPress={()=> router.navigate("../(auth)/register")} >
+            <Text style={styles.buttonText}>Register</Text>
+          </TouchableOpacity>
         </View>
       }
       viewabilityConfig={{
@@ -37,13 +40,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center',
   },
-
   centerText: {
     fontFamily: "PoppinsBold",
     fontSize: 16,
     marginBottom: 15,
-    alignSelf:'center'
-,
+    alignSelf: 'center',
+    textAlign :'center'
   },
-  
+  button: {
+    backgroundColor: "#3D7B3F",
+    paddingVertical: 8,  // Ukuran vertikal tombol diperkecil
+    paddingHorizontal: 16, // Ukuran horizontal tombol diperkecil
+    borderRadius: 5,
+    alignSelf: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontFamily: "PoppinsBold",
+    fontSize: 14,
+    textAlign: 'center',
+  },
 });
