@@ -27,9 +27,9 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
-      if(getUser()){
-        router.navigate('/(tabs)')
-      }
+      // if(getUser()){
+      //   router.navigate('/(tabs)')
+      // }
     }
   }, [loaded]);
 

@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { getCarDetails, selectCarDetails } from '../../../../redux/reducers/car/carDetailsSlice';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Row, Col } from "@/components/Grid";
+import { router } from 'expo-router';
 
 export default function details() {
   const { id } = useLocalSearchParams();
@@ -60,6 +61,7 @@ export default function details() {
         <Button
           color='#3D7B3F'
           title="Lanjutkan Pembayaran"
+          onPress={()=> router.navigate("../details/payment")} 
         />
       </View>
     </View>
