@@ -11,9 +11,9 @@ const loginSlice = createSlice({
   name: "user",
   initialState: {
     isLoading: false,
-    data: getStore() ? getStore():{},
+    data: getStore () ?getStore():{},
     isModalVisible:false,
-    isLogin: false,
+    isLogin: getStore () ? true: false,
     isError: false,
     errorMessage: null,
   },
@@ -24,7 +24,15 @@ const loginSlice = createSlice({
         state.isModalVisible = false;
         state.isError = false;
         state.errorMessage = null
-    }
+    },
+    logout : (state) =>{
+        state.isLogin = false
+        state.data ={}
+        SecureStore.deleteItemAsync("user")
+        // state.setStore= null
+        // state.user= null
+        
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -52,8 +60,8 @@ const loginSlice = createSlice({
 
 
 export {postLogin}
-export const {closeModal} = loginSlice.actions;
-export const selectUser = (state) => state.user;
+export const {closeModal,logout} = loginSlice.actions;
+export const selectUser = (state) => state.user; //selector
 export default loginSlice.reducer;
 
 
