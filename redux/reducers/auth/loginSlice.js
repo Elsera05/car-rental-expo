@@ -3,7 +3,7 @@ import { postLogin } from "./authApi";
 import * as SecureStore from 'expo-secure-store';
 
 
-const getStore = () => JSON.parse(SecureStore.getItem('user'))
+const getStore = () => SecureStore.getItem('user') && JSON.parse(SecureStore.getItem('user'))
 const setStore = (value) => SecureStore.setItem('user',JSON.stringify(value))
 
 

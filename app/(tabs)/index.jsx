@@ -7,10 +7,11 @@ import CarList from "../../components/CarList";
 import { useState, useEffect } from "react";
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-
-
+import GeoLocation from "../../components/GeoLocation";
 import { useSelector,useDispatch } from "react-redux";
 import {getCar,selectCar} from '@/redux/reducers/car/carSlice'
+
+
 
 export default function HomeScreen() {
 const {data,isLoading,}= useSelector(selectCar)
@@ -34,7 +35,7 @@ const dispatch = useDispatch();
         <View style={styles.container}>
           <View>
             <Text style={styles.titleText}>Hi, Nama</Text>
-            <Text style={styles.titleText}>Location</Text>
+            <GeoLocation/>
           </View>
           <View>
             <Image

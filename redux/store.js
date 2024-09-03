@@ -3,12 +3,14 @@ import reactotron from "../ReactotronConfig";
 import carSlice from "./reducers/car/carSlice";
 import carDetailsSlice from "./reducers/car/carDetailsSlice";
 import loginSlice from "./reducers/auth/loginSlice";
+import orderSlice from "./reducers/order/orderSlice";
 // pnpm @reduxjs/toolkit react-redux
 export const store = configureStore({
 reducer: {
     car: carSlice,
     carDetails : carDetailsSlice,
     user : loginSlice,
+    order: orderSlice,
 
 },
 enhancers:

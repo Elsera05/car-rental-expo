@@ -1,22 +1,35 @@
-import { View, Text, ScrollView, Image, Button, StyleSheet } from 'react-native'
-import { useLocalSearchParams } from 'expo-router'
+import { View, Text, ScrollView, Image, StyleSheet } from 'react-native'
+import { useLocalSearchParams,router } from 'expo-router'
 import { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from "react-redux";
-import { getCarDetails, selectCarDetails } from '../../../../redux/reducers/car/carDetailsSlice';
+import { getCarDetails, selectCarDetails,closeDetails } from '../../../../redux/reducers/car/carDetailsSlice';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Row, Col } from "@/components/Grid";
-import { router } from 'expo-router';
+import Button from "@/components/Button";
+import { normalize } from "@/utils/normalize";
+import { setCarId } from "@/redux/reducers/order/orderSlice";
+import { useCallback } from 'react';
+
+
+
+const formatCurrency = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+});
+
 
 export default function details() {
   const { id } = useLocalSearchParams();
   const { data, isloading } = useSelector(selectCarDetails)
   const dispatch = useDispatch();
+  const formatIDR = useCallback((price) => formatCurrency.format(price), []);
 
   useEffect(() => {
     const controller = new AbortController(); // UseEffect cleanup to avoid memory leak
     const signal = controller.signal;
 
     dispatch(getCarDetails({ id, signal }))
+    dispatch(setCarId(id))
 
     return () => {
       controller.abort();
@@ -26,16 +39,22 @@ export default function details() {
 
   return (
     <View style={style.container}>
+          <Button style={style.backButton} onPress={() => {
+        dispatch(closeDetails())
+        router.back()
+      }}>
+        <Ionicons size={32} name={"arrow-back"} color={"#00000"} />
+      </Button>
       <ScrollView contentContainerStyle={style.scrollContainer}>
         <Text style={style.name}>{data.name}</Text>
         <Row gap={20}>
           <Col style={style.textIcon}>
             <Ionicons size={14} name={"people-outline"} color={"#8A8A8A"} />
-            <Text style={style.capacityText}>{data.passengers}</Text>
+            <Text style={style.capacityText}>{data.passengers}{7}</Text>
           </Col>
           <Col style={style.textIcon}>
             <Ionicons size={14} name={"bag-outline"} color={"#8A8A8A"} />
-            <Text style={style.capacityText}>{data.baggage}</Text>
+            <Text style={style.capacityText}>{data.baggage}{4}</Text>
           </Col>
         </Row>
         <Image
@@ -56,12 +75,16 @@ export default function details() {
       </View>
 
       </ScrollView>
+      
       <View style={style.footer}>
-        <Text style={style.price}>Rp.{data.price}</Text>
+      <Text style={style.price}>{formatIDR(data.price || 0)}</Text>
         <Button
-          color='#3D7B3F'
+          color="#3D7B3F"
+          onPress={() => {
+            dispatch(setCarId(id))
+            router.navigate("(order)")
+          }}
           title="Lanjutkan Pembayaran"
-          onPress={()=> router.navigate("../details/payment")} 
         />
       </View>
     </View>
@@ -69,7 +92,7 @@ export default function details() {
 }
 const style = StyleSheet.create({
   container: {
-    paddingTop: 40,
+    paddingTop: 15,
     flex: 1,
     backgroundColor: '#ffffff'
   },
@@ -136,4 +159,24 @@ const style = StyleSheet.create({
     fontSize: 14,
     marginBottom: 10,
   },
+  backButton: {
+    alignItems: "flex-start",
+    position: "fixed",
+    backgroundColor: "transparent",
+    top: 40,
+    left: 10,
+    zIndex: 9,
+    flex:0,
+  },
+  details: {
+    body: {
+      fontSize: normalize(16),
+      marginBottom: 10,
+    },
+    bullet_list: {
+      marginBottom: 10,
+    },
+    heading2: { marginBottom: 10, fontSize: normalize(18), fontFamily: "PoppinsBold" },
+  },
+  
 });
