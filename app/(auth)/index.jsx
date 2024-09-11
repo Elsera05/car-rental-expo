@@ -1,40 +1,53 @@
 import { View, Text, Image, TextInput, Button, StyleSheet } from "react-native";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import ModalPopup from "../../components/Modal";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Link, router } from "expo-router";
-import * as SecureStore from 'expo-secure-store';
+// import * as SecureStore from "expo-secure-store";
 import { useDispatch, useSelector } from "react-redux";
 import { closeModal, postLogin, selectUser } from "../../redux/reducers/auth/loginSlice";
-import * as Yup from 'yup';
+import * as Yup from "yup";
 import { Formik } from "formik";
+import { GoogleSignin, GoogleSigninButton } from "@react-native-google-signin/google-signin";
+import auth from '@react-native-firebase/auth';
 
-async function save(key, value) {
-  await SecureStore.setItemAsync(key, value);
-}
-
-// Skema Validasi menggunakan Yup
-const LoginSchema = Yup.object().shape({
-  email: Yup.string().email('Invalid email').required('Required'),
-  password: Yup.string()
-    .min(8, 'Too Short!')
-    .max(20, 'Too Long!')
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/,
-      "Must Contain 8 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character"
-    )
-    .required('Required'),
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
 });
 
 export default function Login() {
+  // State for user and initialization
+  const [user, setUser] = useState(null);
+  const [initializing, setInitializing] = useState(true);
+  
   const { data, errorMessage, isModalVisible, isError } = useSelector(selectUser);
   const dispatch = useDispatch();
+
+  // Function for Google Sign-in
+  async function onGoogleButtonPress() {
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    const { data :{ idToken }} = await GoogleSignin.signIn();
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    console.log(idToken, googleCredential); // cek token aja bro 
+    return auth().signInWithCredential(googleCredential);
+  }
+
+  // Listen to authentication state changes
+  function onAuthStateChanged(user) {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  }
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // Unsubscribe on unmount
+  }, []);
 
   useEffect(() => {
     if (isModalVisible) {
       setTimeout(() => {
         dispatch(closeModal());
-        if (!isError) router.replace('../(tabs)');
+        if (!isError) router.replace("../(tabs)");
       }, 2000);
     }
   }, [isModalVisible]);
@@ -43,6 +56,19 @@ export default function Login() {
     console.log("test submit", values);
     dispatch(postLogin(values));
   };
+
+  // Validation Schema using Yup
+  const LoginSchema = Yup.object().shape({
+    email: Yup.string().email("Invalid email").required("Required"),
+    password: Yup.string()
+      .min(8, "Too Short!")
+      .max(20, "Too Long!")
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/,
+        "Must Contain 8 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character"
+      )
+      .required("Required"),
+  });
 
   return (
     <View>
@@ -55,13 +81,20 @@ export default function Login() {
         validationSchema={LoginSchema}
         onSubmit={handleSubmit}
       >
-        {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+        {({
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          values,
+          errors,
+          touched,
+        }) => (
           <>
             <View style={styles.formContainer}>
               <Text style={styles.formLabel}>Email</Text>
               <TextInput
-                onBlur={handleBlur('email')}
-                onChangeText={handleChange('email')}
+                onBlur={handleBlur("email")}
+                onChangeText={handleChange("email")}
                 value={values.email}
                 style={styles.formInput}
                 placeholder="hehe123@gmail.com"
@@ -74,8 +107,8 @@ export default function Login() {
             <View style={styles.formContainer}>
               <Text style={styles.formLabel}>Password</Text>
               <TextInput
-                onBlur={handleBlur('password')}
-                onChangeText={handleChange('password')}
+                onBlur={handleBlur("password")}
+                onChangeText={handleChange("password")}
                 value={values.password}
                 style={styles.formInput}
                 secureTextEntry={true}
@@ -94,6 +127,14 @@ export default function Login() {
                   Sign up for free
                 </Link>
               </Text>
+              <View>
+                {/* <Text>or</Text> */}
+                <GoogleSigninButton
+                  size={GoogleSigninButton.Size.Wide}
+                  color={GoogleSigninButton.Color.Dark}
+                  onPress={onGoogleButtonPress}
+                />
+              </View>
             </View>
           </>
         )}
@@ -103,12 +144,12 @@ export default function Login() {
         <View style={styles.modalBackground}>
           {errorMessage !== null ? (
             <View style={styles.modalContent}>
-              <Ionicons size={32} name={'close-circle'} />
+              <Ionicons size={32} name={"close-circle"} />
               <Text>{errorMessage}</Text>
             </View>
           ) : (
             <View style={styles.modalContent}>
-              <Ionicons size={32} name={'checkmark-circle'} />
+              <Ionicons size={32} name={"checkmark-circle"} />
               <Text>Berhasil Login!</Text>
             </View>
           )}
@@ -146,17 +187,17 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
   modalBackground: {
-    width: '90%',
-    backgroundColor: '#fff',
+    width: "90%",
+    backgroundColor: "#fff",
     elevation: 20,
     borderRadius: 4,
     padding: 20,
   },
   modalContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   errorText: {
-    color: 'red',
+    color: "red",
   },
 });

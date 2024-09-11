@@ -109,9 +109,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anonymous.carrentalexpo'
+    namespace 'com.arr.carrentalexpo'
     defaultConfig {
-        applicationId 'com.anonymous.carrentalexpo'
+        applicationId 'com.arr.carrentalexpo'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

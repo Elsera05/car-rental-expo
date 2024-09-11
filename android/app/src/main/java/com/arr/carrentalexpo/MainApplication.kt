@@ -1,4 +1,4 @@
-package com.anonymous.carrentalexpo
+package com.arr.carrentalexpo
 
 import android.app.Application
 import android.content.res.Configuration

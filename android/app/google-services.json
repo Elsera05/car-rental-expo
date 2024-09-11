@@ -7,12 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:946042353610:android:5bdaece6596b08059f8133",
+        "mobilesdk_app_id": "1:946042353610:android:ecc8d8f75663a3f29f8133",
         "android_client_info": {
-          "package_name": "com.anonymous.carrentalexpo"
+          "package_name": "com.arr.carrentalexpo"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "946042353610-g9dvlm92mm5ob8cnor0jm1pdjdr82gqi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.arr.carrentalexpo",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "946042353610-ptjda3qn69jg1qnqru4u83spmq1nq5el.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBkPUPhtO8lFsHCj7AtlZouXVKTBKDdZ_4"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "946042353610-ptjda3qn69jg1qnqru4u83spmq1nq5el.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
