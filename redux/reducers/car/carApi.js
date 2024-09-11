@@ -1,4 +1,4 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk } from "@reduxjs/toolkit";                
 export const fetchCars = createAsyncThunk (
     "fetchCars",
     async (signal) => {
@@ -11,5 +11,4 @@ export const fetchCarsDetails = createAsyncThunk(
     async ({id,signal}) => {
         const res = await fetch(`https://api-car-rental.binaracademy.org/customer/car/`+ id,{signal});
         return res?.json();
-    }
-)    
+    });

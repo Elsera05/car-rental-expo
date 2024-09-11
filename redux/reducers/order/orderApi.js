@@ -1,46 +1,53 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { postLogin } from "./authApi";
-import * as SecureStore from 'expo-secure-store';
+import { createAsyncThunk } from "@reduxjs/toolkit";   
+export const postOrder = createAsyncThunk(
+  "postOrder",
+  async ({ token, formData }) => {
+    try {
+      const res = await fetch(
+        "https://api-car-rental.binaracademy.org/customer/order",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            access_token: token,
+          },
+          body: JSON.stringify({
+            start_rent_at: formData.startRentAt,
+            finish_rent_at: formData.finishRentAt,
+            car_id: formData.carId,
+          }),
+        }
+      );
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.message);
+      return body;
+    } catch (e) {
+      return e.message;
+    }
+  }
+);
+ 
+export const putOrderSlip = createAsyncThunk(
+  "putOrderSlip",
+  async ({ token, id, formData }, { rejectWithValue }) => {
+    try {
+      const res = await fetch(
+        "https://api-car-rental.binaracademy.org/customer/order/" + id + "/slip",
+        {
+          method: "PUT", //update data di backend pasti pakai PUT 
+          headers: { 
+            "Content-Type": "multipart/form-data",
+            "access_token": token, //access token yang buat di backend
+          },
+          body: formData,
+        }
+      );
+      const body = await res?.json();
+      if (!res.ok) throw new Error(body.message);
+      return body;
+    } catch (e) {
+      return rejectWithValue(e.message);
+    }
+  }
+);
 
-const loginSlice = createSlice({
-  name: "user",
-  initialState: {
-    isLoading: false,
-    carId: null,
-    startRent: null,
-    endRent: null,
-    data: {},
-    paymentCountdown: null,
-    paymentMethod: null,
-    verificationCountdown: null,
-    errorMessage: null,
-  },
-  reducers: {
-    setCarId: (state, { payload }) => {
-      state.carId = payload;
-    },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(postLogin.pending, (state, action) => {
-      state.isLoading = true;
-    });
-    builder.addCase(postLogin.fulfilled, (state, action) => {
-      state.isLoading = false;
-      state.isLogin = true,
-      state.data = action.payload;
-      setStore(action.payload)
-      state.isModalVisible = true;
-    });
-    builder.addCase(postLogin.rejected, (state, action) => {
-      state.isLoading = false
-      state.isError = true;
-      state.errorMessage = action.payload
-      state.isModalVisible = true;
-    });
-  },
-});
-
-export { postLogin };
-export const { closeModal, logout } = loginSlice.actions
-export const selectUser = state => state.user //selector
-export default loginSlice.reducer

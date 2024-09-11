@@ -1,14 +1,17 @@
-import React, { useCallback, useState } from "react";
-import { View, Text, TextInput, StyleSheet, Alert, Pressable } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
-import { selectOrder } from "@/redux/reducers/order/orderSlice";
+import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, TextInput, StyleSheet, Alert, Pressable, TouchableOpacity,Modal,Image} from "react-native";
+import { useDispatch, useSelector, } from "react-redux";
+import { selectOrder,setStateByName,putOrderSlip } from "@/redux/reducers/order/orderSlice";
 import { selectCarDetails } from "@/redux/reducers/car/carDetailsSlice";
 import CarList from "@/components/CarList";
 import Button from "@/components/Button";
 import { Ionicons } from "@expo/vector-icons";
 import CountDown from "react-native-countdown-component-maintained";
 import * as Clipboard from "expo-clipboard";
+import * as ImagePicker from 'expo-image-picker';
+import { selectUser } from "@/redux/reducers/auth/loginSlice";
 
+ 
 
 function getDate24() {
   const date24 = new Date();
@@ -24,15 +27,66 @@ const formatCurrency = new Intl.NumberFormat("id-ID", {
 const paymentMethod = ["BCA"];
 
 export default function Step2({ setActiveStep }) {
-  const { carId } = useSelector(selectOrder);
-  const { data } = useSelector(selectCarDetails);
+  const dispatch = useDispatch();
+  const { data, promo,status,errorMessage } = useSelector(selectOrder);
+  const user = useSelector(selectUser);
+  const carDetails = useSelector(selectCarDetails);
   const formatIDR = useCallback((price) => formatCurrency.format(price), []);
   const [selectedMethod, setSelectedMethod] = useState(null);
-  // const dispatch = useDispatch();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [image, setImage]= useState(null);
+  const copyToClipboard = async (text) => {
+    const str = text.toString();
+    await Clipboard.setStringAsync(str);
+  };
 
-  const copyToClipboard = async (text) =>{
-    await Clipboard.setStringAsync(text.toString())
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage({
+        uri:result.assets[0].uri,
+        name:result.assets[0].fileName,
+        type:result.assets[0].mimeType,
+      }); //input kalo beda plugin isi manual  ( yang terpenting itu penting diisi uri name , type)
+    }
+  };
+
+  const handleUpload =() => {
+    console.log(image)
+    if (image) {
+      const formData = new FormData(); //karena di react native tidak ada mukltipart formdata fungsi bawaan dari js (untuk bikin bentuk data dalm bentuk form )
+      formData.append("slip",image); 
+      dispatch(putOrderSlip({
+        token:user.data.access_token,
+        id:data.id,
+        formData}));
+    }
   }
+
+  useEffect(() => {
+    console.log(status)
+    if(status === "upload-success"){
+      console.log(data)
+      setActiveStep(2)
+      // dispatch(setStateByName({name:'activeStep',value:2}));
+    }else{
+      console.log(errorMessage)
+    }
+  },[status])
+
+   // const handlePromoApply = () => {
+  //   // buat nnti promosi 
+  //   console.log("Applying promo code:", promoCode);
+  // };
+
 
   return (
     <View style={{ flex: 1 }}>
@@ -46,16 +100,17 @@ export default function Step2({ setActiveStep }) {
             timeLabelStyle={{display:"none"}}
             onFinish={() => Alert.alert('Finished')}
             timeToShow={['H','M','S']}
-            size={12}
+            size={10}
           />
         </View>
         <CarList
-          image={{ uri: data.image }}
-          carName={data.name}
+          image={{ uri: carDetails.data.image }}
+          carName={carDetails.data.name}
           passengers={5}
           baggage={4}
-          price={data.price}
+          price={carDetails.data.price}
         />
+        <Text>hehe</Text>
         <Text style={styles.transacTrans}>Lakukan Transfer Ke</Text>
         <View>
           {paymentMethod.map((e) => (
@@ -77,10 +132,8 @@ export default function Step2({ setActiveStep }) {
             <Text style={styles.detailLabel}>Nomor Rekening</Text>
             <View style={styles.detailValueContainer}>
               <Text style={styles.detailValue}>12345678</Text>
-              <Pressable
-              onPress={() => copyToClipboard(12345678) }
-              >
-              <Ionicons name="copy-outline" size={24} color="#3D7B3F" />
+              <Pressable onPress={() => copyToClipboard(12345678)}>
+                <Ionicons name="copy-outline" size={24} color="#3D7B3F" />
               </Pressable>
             </View>
           </View>
@@ -88,10 +141,8 @@ export default function Step2({ setActiveStep }) {
             <Text style={styles.detailLabel}>Total Bayar</Text>
             <View style={styles.detailValueContainer}>
               <Text style={styles.detailValue}>{formatIDR(230000)}</Text>
-              <Pressable
-              onPress={() => copyToClipboard(230000) }
-              >
-              <Ionicons name="copy-outline" size={24} color="#3D7B3F" />
+              <Pressable onPress={() => copyToClipboard(230000)}>
+                <Ionicons name="copy-outline" size={24} color="#3D7B3F" />
               </Pressable>
             </View>
           </View>
@@ -103,19 +154,72 @@ export default function Step2({ setActiveStep }) {
           <Button
             disabled={!selectedMethod}
             color="#3D7B3F"
-            onPress={() => setActiveStep(2)}
+            onPress={() => setModalVisible(true)}
             title="Lanjutkan Pembayaran"
+            
           />
-          <Button
+          <TouchableOpacity
             style={styles.orderListButton}
-            textStyle={styles.orderListButtonText}
             onPress={() => {
-              // arahkan ke halaman yang diinginkan
+              //bingung mau taro mana 
             }}
-            title="Lihat Daftar Pesanan"
-          />
+          >
+            <Text style={styles.orderListButtonText}>Lihat Daftar Pesanan</Text>
+          </TouchableOpacity>
         </View>
       </View>
+      {/* modal disini ya brooo biar ga lupa*/}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Konfirmasi Pembayaran</Text>
+            <Text style={styles.modalText}>
+              Terima kasih telah melakukan konfirmasi pembayaran. Pembayaranmu akan segera kami cek tunggu kurang lebih 10 menit untuk mendapatkan konfirmasi.
+            </Text>
+            <CountDown
+              until={600} 
+              size={20}
+              digitStyle={{backgroundColor: '#FFF'}}
+              digitTxtStyle={{color: '#FA2C5A'}}
+              timeToShow={['M', 'S']}
+              timeLabels={{m: '', s: ''}}
+              // onFinish={onClose}
+              showSeparator
+            />
+            <Text style={styles.uploadText}>Upload Bukti Pembayaran</Text>
+            <Text style={styles.uploadDescription}>
+              Untuk membantu kami lebih cepat melakukan pengecekan. Kamu bisa upload bukti bayarmu
+            </Text>
+            <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+          {image ? 
+            <Image source={{uri:image.uri}} style={styles.image} />
+           : 
+            <>
+              <Ionicons name="image-outline" size={24} color="#000" />
+              <Text style={styles.uploadButtonText}>Upload gambar disini</Text>
+            </>
+          }
+        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.orderListButtonUpload}
+              onPress={handleUpload }
+            >
+              <Text style={styles.orderListButtonTextUpload}>Upload gambar disini bro</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.orderListButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.orderListButtonText}>Ini larinya kemana sih le</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -129,7 +233,6 @@ const styles = StyleSheet.create({
     fontFamily: "PoppinsBold",
     fontSize: 16,
     marginBottom: 10,
-    
   },
   paymentMethod: {
     flexDirection: "row",
@@ -193,8 +296,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   footer: {
-    backgroundColor: "#eeeeee",
     position: "fixed",
+    paddingTop: 10,
     bottom: 0,
     right: 0,
     left: 0,
@@ -229,29 +332,98 @@ const styles = StyleSheet.create({
   orderListButton: {
     backgroundColor: "#FFFFFF",
     borderRadius: 1,
-    paddingVertical: 1,
+    paddingVertical: 10,
     borderWidth: 1,
     borderColor: "#4CAF50",
     marginTop: 10,
   },
   orderListButtonText: {
     fontFamily: "PoppinsBold",
-    color: "#4CAF50",
-    fontSize: 16,
+    color: "#3D7B3F",
+    fontSize: 14,
     fontWeight: "bold",
     textAlign: "center",
   },
+  orderListButtonUpload:{
+    backgroundColor: "#3D7B3F",
+    borderRadius: 1,
+    paddingVertical: 10,
+    borderWidth: 1,
+    marginTop: 10,
+    borderColor: "#4CAF50"
 
-  countDownWrapper:{
-    flex:1,
-    flexDirection:"row",
-    alignItems:"center",
-    justifyContent:"space-between",
-    marginBottom:10
-
-  }
-
-
-
+  },
+  orderListButtonTextUpload:{
+    fontFamily: "PoppinsBold",
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  countDownWrapper: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: '90%',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontFamily:"PoppinsBold"
+  },
+  uploadText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  uploadDescription: {
+    textAlign: 'center',
+    marginBottom: 10,
+    fontFamily:"PoppinsBold"
+  },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f0f0',
+    padding: 5,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  uploadButtonText: {
+    marginLeft: 10,
+  },
+  image :{
+    height:200,
+    width:250,
+    
+  },
 });
-

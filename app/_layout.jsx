@@ -8,6 +8,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import {store} from '../redux/store';
 import { Provider } from 'react-redux';
+import crashlytics from '@react-native-firebase/crashlytics';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -25,6 +26,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    crashlytics().log('App started');
     if (loaded) {
       setTimeout(() => {
         if (getUser()) router.navigate('/(tabs)')

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "946042353610",
+    "project_id": "car-rental-expo",
+    "storage_bucket": "car-rental-expo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:946042353610:android:5bdaece6596b08059f8133",
+        "android_client_info": {
+          "package_name": "com.anonymous.carrentalexpo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkPUPhtO8lFsHCj7AtlZouXVKTBKDdZ_4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
