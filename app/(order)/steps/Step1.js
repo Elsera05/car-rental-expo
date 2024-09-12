@@ -14,7 +14,6 @@ import { postOrder } from "@/redux/reducers/order/orderApi";
 import { selectCarDetails } from "@/redux/reducers/car/carDetailsSlice";
 import { selectUser } from "@/redux/reducers/auth/loginSlice";
 
-
 const formatCurrency = new Intl.NumberFormat("id-ID", {
   style: "currency",
   currency: "IDR",
@@ -26,10 +25,10 @@ export default function Step1({ setActiveStep }) {
   const { data } = useSelector(selectCarDetails);
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
-  const {status,errorMessage} = useSelector(selectOrder);
-  const [selectedMethod, setSelectedMethod] = useState(null);
+  const { status, errorMessage } = useSelector(selectOrder);
+  const [selectedBank, setSelectedBank] = useState(null);
   const [promoCode, setPromoCode] = useState("");
-  
+
   const formatIDR = useCallback((price) => formatCurrency.format(price), []);
 
   const handleOrder = () => {
@@ -40,15 +39,15 @@ export default function Step1({ setActiveStep }) {
     };
 
     dispatch(postOrder({
-      token: user.data.access_token,formData: formData }));
+      token: user.data.access_token, formData: formData }));
   };
 
-  useEffect(()=>{
-    if(status  === "success"){
-    }else{
+  useEffect(() => {
+    if (status === "success") {
+    } else {
       console.log(errorMessage)
     }
-  },[status])
+  }, [status])
 
   // const handlePromoApply = () => {
   //   // buat nnti promosi 
@@ -64,29 +63,29 @@ export default function Step1({ setActiveStep }) {
         baggage={4}
         price={data.price}
       />
-      
+
       <Text style={styles.textBold}>Pilih Bank Transfer</Text>
       <Text style={styles.subText}>
         Kamu bisa membayar dengan transfer melalui ATM, Internet Banking atau
         Mobile Banking
       </Text>
-      
+
       <View>
-        {paymentMethod.map((method) => (
+        {paymentMethod.map((method, index) => (
           <Button
-            key={method}
+            key={index} // tambahkan prop key yang unik
             style={styles.paymentMethod}
-            onPress={() => setSelectedMethod(method)}
+            onPress={() => setSelectedBank(method)}
           >
             <Text style={styles.paymentBox}>{method}</Text>
             <Text style={styles.paymentText}>{method} Transfer</Text>
-            {selectedMethod === method && (
+            {selectedBank === method && (
               <Ionicons style={styles.checkmark} size={20} name="checkmark" />
             )}
           </Button>
         ))}
       </View>
-      
+
       <View style={styles.promoContainer}>
         <Text style={styles.promoText}>% Pakai Kode Promo</Text>
         <View style={styles.wrapperInput}>
@@ -104,11 +103,11 @@ export default function Step1({ setActiveStep }) {
           />
         </View>
       </View>
-      
+
       <View style={styles.footer}>
         <Text style={styles.price}>{formatIDR(data.price || 0)}</Text>
         <Button
-          disabled={!selectedMethod}
+          disabled={!selectedBank}
           color="#3D7B3F"
           onPress={() => {
             setActiveStep(1);
@@ -120,6 +119,7 @@ export default function Step1({ setActiveStep }) {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

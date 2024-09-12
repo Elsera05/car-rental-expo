@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, TextInput, StyleSheet, Alert, Pressable, TouchableOpacity,Modal,Image} from "react-native";
-import { useDispatch, useSelector, } from "react-redux";
-import { selectOrder,setStateByName,putOrderSlip } from "@/redux/reducers/order/orderSlice";
+import { View, Text, StyleSheet, Alert, Pressable, TouchableOpacity, Modal, Image } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { selectOrder, setStateByName, putOrderSlip } from "@/redux/reducers/order/orderSlice";
 import { selectCarDetails } from "@/redux/reducers/car/carDetailsSlice";
 import CarList from "@/components/CarList";
 import Button from "@/components/Button";
@@ -10,8 +10,7 @@ import CountDown from "react-native-countdown-component-maintained";
 import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from 'expo-image-picker';
 import { selectUser } from "@/redux/reducers/auth/loginSlice";
-
- 
+import moment from "moment";
 
 function getDate24() {
   const date24 = new Date();
@@ -24,17 +23,17 @@ const formatCurrency = new Intl.NumberFormat("id-ID", {
   currency: "IDR",
 });
 
-const paymentMethod = ["BCA"];
-
-export default function Step2({ setActiveStep }) {
+export default function Step2({ setActiveStep, selectedBank }) {
   const dispatch = useDispatch();
-  const { data, promo,status,errorMessage } = useSelector(selectOrder);
+  const { data, status, errorMessage } = useSelector(selectOrder);
   const user = useSelector(selectUser);
   const carDetails = useSelector(selectCarDetails);
   const formatIDR = useCallback((price) => formatCurrency.format(price), []);
-  const [selectedMethod, setSelectedMethod] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [image, setImage]= useState(null);
+  const [image, setImage] = useState(null);
+
+  const paymentMethod = [selectedBank];
+
   const copyToClipboard = async (text) => {
     const str = text.toString();
     await Clipboard.setStringAsync(str);
@@ -52,47 +51,43 @@ export default function Step2({ setActiveStep }) {
 
     if (!result.canceled) {
       setImage({
-        uri:result.assets[0].uri,
-        name:result.assets[0].fileName,
-        type:result.assets[0].mimeType,
-      }); //input kalo beda plugin isi manual  ( yang terpenting itu penting diisi uri name , type)
+        uri: result.assets[0].uri,
+        name: result.assets[0].fileName,
+        type: result.assets[0].mimeType,
+      });
     }
   };
 
-  const handleUpload =() => {
+  const handleUpload = () => {
     console.log(image)
     if (image) {
-      const formData = new FormData(); //karena di react native tidak ada mukltipart formdata fungsi bawaan dari js (untuk bikin bentuk data dalm bentuk form )
-      formData.append("slip",image); 
+      const formData = new FormData();
+      formData.append("slip", image); 
       dispatch(putOrderSlip({
-        token:user.data.access_token,
-        id:data.id,
-        formData}));
+        token: user.data.access_token,
+        id: data.id,
+        formData
+      }));
     }
   }
 
   useEffect(() => {
     console.log(status)
-    if(status === "upload-success"){
+    if (status === "upload-success") {
       console.log(data)
       setActiveStep(2)
-      // dispatch(setStateByName({name:'activeStep',value:2}));
-    }else{
+    } else {
       console.log(errorMessage)
     }
-  },[status])
+  }, [status])
 
-   // const handlePromoApply = () => {
-  //   // buat nnti promosi 
-  //   console.log("Applying promo code:", promoCode);
-  // };
-
+  const currentDateTime = moment().format('dddd, MMMM Do YYYY, h:mm A');
 
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
         <View style={styles.countDownWrapper}>
-          <Text style={styles.textBold}>Selesaikan pembayaran sebelum</Text>
+          <Text style={styles.textBold}>Se lesaikan pembayaran sebelum</Text>
           <CountDown
             until={86400}
             digitStyle={{ backgroundColor: '#FA2C5A' }}
@@ -103,6 +98,7 @@ export default function Step2({ setActiveStep }) {
             size={10}
           />
         </View>
+        <Text style={styles.dateTimeText}>{currentDateTime}</Text>
         <CarList
           image={{ uri: carDetails.data.image }}
           carName={carDetails.data.name}
@@ -110,20 +106,16 @@ export default function Step2({ setActiveStep }) {
           baggage={4}
           price={carDetails.data.price}
         />
-        <Text>hehe</Text>
         <Text style={styles.transacTrans}>Lakukan Transfer Ke</Text>
         <View>
           {paymentMethod.map((e) => (
             <Button
               key={e}
               style={styles.paymentMethod}
-              onPress={() => setSelectedMethod(e)}
             >
               <Text style={styles.paymentBox}>{e}</Text>
               <Text style={styles.paymentText}>{e} Transfer</Text>
-              {selectedMethod === e && (
-                <Ionicons style={styles.checkmark} size={20} name="checkmark" />
-              )}
+              <Ionicons style={styles.checkmark} size={20} name="checkmark" />
             </Button>
           ))}
         </View>
@@ -152,23 +144,20 @@ export default function Step2({ setActiveStep }) {
             Klik konfirmasi pembayaran untuk mempercepat proses pengecekan
           </Text>
           <Button
-            disabled={!selectedMethod}
             color="#3D7B3F"
             onPress={() => setModalVisible(true)}
             title="Lanjutkan Pembayaran"
-            
           />
           <TouchableOpacity
             style={styles.orderListButton}
             onPress={() => {
-              //bingung mau taro mana 
+              // Handle order list
             }}
           >
             <Text style={styles.orderListButtonText}>Lihat Daftar Pesanan</Text>
           </TouchableOpacity>
         </View>
       </View>
-      {/* modal disini ya brooo biar ga lupa*/}
       <Modal
         animationType="slide"
         transparent={true}
@@ -188,7 +177,6 @@ export default function Step2({ setActiveStep }) {
               digitTxtStyle={{color: '#FA2C5A'}}
               timeToShow={['M', 'S']}
               timeLabels={{m: '', s: ''}}
-              // onFinish={onClose}
               showSeparator
             />
             <Text style={styles.uploadText}>Upload Bukti Pembayaran</Text>
@@ -196,18 +184,18 @@ export default function Step2({ setActiveStep }) {
               Untuk membantu kami lebih cepat melakukan pengecekan. Kamu bisa upload bukti bayarmu
             </Text>
             <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
-          {image ? 
-            <Image source={{uri:image.uri}} style={styles.image} />
-           : 
-            <>
-              <Ionicons name="image-outline" size={24} color="#000" />
-              <Text style={styles.uploadButtonText}>Upload gambar disini</Text>
-            </>
-          }
-        </TouchableOpacity>
+              {image ? 
+                <Image source={{uri:image.uri}} style={styles.image} />
+               : 
+                <>
+                  <Ionicons name="image-outline" size={24} color="#000" />
+                  <Text style={styles.uploadButtonText}>Upload gambar disini</Text>
+                </>
+              }
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.orderListButtonUpload}
-              onPress={handleUpload }
+              onPress={handleUpload}
             >
               <Text style={styles.orderListButtonTextUpload}>Upload gambar disini bro</Text>
             </TouchableOpacity>
@@ -215,7 +203,7 @@ export default function Step2({ setActiveStep }) {
               style={styles.orderListButton}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.orderListButtonText}>Ini larinya kemana sih le</Text>
+              <Text style={styles.orderListButtonText}>Lihat Daftar Pesanan</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -223,7 +211,6 @@ export default function Step2({ setActiveStep }) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -240,6 +227,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderColor: "#D0D0D0",
+    fontFamily:"Poppins"
+    
   },
   paymentBox: {
     borderWidth: 1,
@@ -365,7 +354,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10
+    
   },
   modalContainer: {
     flex: 1,
@@ -424,6 +413,10 @@ const styles = StyleSheet.create({
   image :{
     height:200,
     width:250,
-    
+  },
+  dateTimeText: { // Style buat tanggalan
+    fontSize: 14,
+    marginBottom: 10,
+    color: '#666',
   },
 });
