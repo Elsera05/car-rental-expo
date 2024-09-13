@@ -108,9 +108,9 @@ export default function Step2({ setActiveStep, selectedBank }) {
         />
         <Text style={styles.transacTrans}>Lakukan Transfer Ke</Text>
         <View>
-          {paymentMethod.map((e) => (
+          {paymentMethod.map((e,index) => (
             <Button
-              key={e}
+              key={index}
               style={styles.paymentMethod}
             >
               <Text style={styles.paymentBox}>{e}</Text>

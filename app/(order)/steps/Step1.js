@@ -9,8 +9,8 @@ import CarList from "@/components/CarList";
 import Button from "@/components/Button";
 
 // Import Redux  buat actions dan  selectors
-import { selectOrder } from "@/redux/reducers/order/orderSlice";
-import { postOrder } from "@/redux/reducers/order/orderApi";
+import { selectOrder,setStateByName } from "@/redux/reducers/order/orderSlice";
+import { postOrder, } from "@/redux/reducers/order/orderApi";
 import { selectCarDetails } from "@/redux/reducers/car/carDetailsSlice";
 import { selectUser } from "@/redux/reducers/auth/loginSlice";
 
@@ -26,7 +26,7 @@ export default function Step1({ setActiveStep }) {
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
   const { status, errorMessage } = useSelector(selectOrder);
-  const [selectedBank, setSelectedBank] = useState(null);
+  const [selectedBank, setSelectedBank] = useState('');
   const [promoCode, setPromoCode] = useState("");
 
   const formatIDR = useCallback((price) => formatCurrency.format(price), []);
@@ -75,7 +75,11 @@ export default function Step1({ setActiveStep }) {
           <Button
             key={index} // tambahkan prop key yang unik
             style={styles.paymentMethod}
-            onPress={() => setSelectedBank(method)}
+            onPress={() => {
+              setSelectedBank(method)
+              dispatch(setStateByName('selectedBank'))
+              console.log(`selected bank ${selectedBank} - ${method}`)
+            }}
           >
             <Text style={styles.paymentBox}>{method}</Text>
             <Text style={styles.paymentText}>{method} Transfer</Text>
